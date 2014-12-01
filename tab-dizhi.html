@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+    <style>
+    	.saveloc{list-style:none;margin:0;padding:10px;}
+    	.saveloc li{height: 1.5em;margin-bottom:0.2em;line-height: 1.5em;overflow: hidden;}
+    	.dizhitype{background:#EC971F;border-radius: 1em;color:#fff;margin-right: 0.5em;width:4em;float:left;text-align:center;}
+		#savebtn {
+		    background: rgba(0,0,0,0.8);
+		    color: #fff;
+		    font-weight: 700;
+		    padding: 10px;
+		    position: fixed;
+		    bottom: 0;
+		    right:0;
+		    left:0;
+		    display: none;
+		    transition: all 200ms ease-in-out;
+		    z-index: 99;
+		    height:96px;
+		}
+		#savebtn a {
+		    background: #ec971f;
+		    border: 2px solid #fff;
+		    border-radius: 1em;
+		    color: #fff;
+		    float: left;
+		    margin: 10px;
+		    text-align: center;
+		    width: 4em;
+		}
+		#addressinput{border-radius: 0;width:100%;float:left;margin: 0;}
+		.mui-bar-nav .mui-icon-search{background:#EC971F;color:#fff;width:40px;height:40px;right:10px;position:absolute;}
+    </style>
+</head>
+<body>
+<header class="mui-bar mui-bar-nav">
+	<div style='position:relative;padding-right: 40px;'>
+		<input id='addressinput' type="text" placeholder="地点"/>
+		<div class='mui-icon mui-icon-search'></div>
+	</div>
+</header>
+<nav class="mui-bar mui-bar-tab">
+    <ul class='saveloc'>
+    	<li id='j'><span class='dizhitype'>家</span><span id='loc_j_s'></span></li>
+    	<li id='gs'><span class='dizhitype'>公司</span><span id='loc_gs_s'></span></li>
+    	<li id='cq'><span class='dizhitype'>常去</span><span id='loc_cq_s'></span></li>
+    </ul>
+</nav>
+<div id='savebtn'>
+	保存为：
+	<br />
+	<a id='loc_j'>家</a>
+	<a id='loc_gs'>公司</a>
+	<a id='loc_cq'>常去</a>
+</div>
+<script>
+mui.init({swipeBack : false});
+
+var selfView,mapView,loc_;
+
+mui.plusReady(function() {
+	var customstreet,lnglat;
+	//读取保存记录
+	loc_ = {
+		loc_j:plus.storage.getItem('loc_j')?JSON.parse(plus.storage.getItem('loc_j')):plus.storage.getItem('loc_j'),
+		loc_gs:plus.storage.getItem('loc_gs')?JSON.parse(plus.storage.getItem('loc_gs')):plus.storage.getItem('loc_gs'),
+		loc_cq:plus.storage.getItem('loc_cq')?JSON.parse(plus.storage.getItem('loc_cq')):plus.storage.getItem('loc_cq')
+	};
+	window.loc_j_s.innerText = loc_.loc_j?loc_.loc_j.name:'';
+	window.loc_gs_s.innerText = loc_.loc_gs?loc_.loc_gs.name:'';
+	window.loc_cq_s.innerText = loc_.loc_cq?loc_.loc_cq.name:'';
+
+	selfView = plus.webview.currentWebview();
+	if(!mapView){
+		mapView = plus.webview.create('map-manage.html','map-manage.html',{top:'48px',bottom:'100px'});
+		mapView.addEventListener('loading',showLoading.call(window,'加载地图'));
+		mapView.addEventListener('loaded',function(){
+			closeLoading();
+			selfView.append(mapView);
+		});
+	}
+	//显示保存按钮
+	window.addEventListener('hide_btm_show',function(){
+//		if(window.savebtn.style.display=='block')
+			window.savebtn.style.display = 'none';
+	});
+	window.addEventListener('save_btm_show',function(event){
+		customstreet = event.detail.customstreet;
+		lnglat = event.detail.lnglat;
+//		if(window.savebtn.style.display=='' || window.savebtn.style.display=='none')
+			window.savebtn.style.display = 'block';
+	});
+	//保存位置
+	mui('#savebtn').on('tap','a',function(){
+		var id = this.id;
+		loc_[id] = {name:customstreet,lnglat:lnglat};
+		plus.storage.setItem(id,JSON.stringify(loc_[id]));
+		window.savebtn.style.display = 'none';
+		window[id+'_s'].innerText = customstreet;
+		mui.toast('保存成功');
+	});
+	//输入查询
+	mui('.mui-bar-nav').on('tap','.mui-icon-search',function(){
+		if(!window.addressinput.value)
+			return false;
+		mui.fire(mapView,'streetSearch',{street:window.addressinput.value});
+	});
+	//地图上显示保存的位置
+	mui('.saveloc').on('tap','li',function(){
+		if(!loc_['loc_'+this.id]){
+			return false;
+		}
+		mui.fire(mapView,'showLoc_point',{lnglat:loc_['loc_'+this.id].lnglat});
+	});
+	
+	function showLoading(text){
+		loadingWindow = plus.nativeUI.showWaiting(text || '');
+	}
+	function closeLoading(){
+		loadingWindow.close();
+	}
+
+	plus.key.addEventListener('backbutton', function(){
+		if(confirm('确认退出？')){
+			plus.runtime.quit();
+		}
+	}, false);
+
+});
+</script>
+</body>
+</html>

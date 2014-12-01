@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+    <style type="text/css">
+    	.mui-bar-tab>a{vertical-align: top;}
+    </style>
+</head>
+<body>
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	<h1 class="mui-title">商家列表</h1>
+</header>
+
+<script>
+   	mui.init();
+   	
+	var selfView,listView,mapView;
+	subpage_style = {
+		top:'44px',
+		bottom:0
+	};
+	var xhr=null,doxhr=false,yun_data;
+		
+	var Search = {
+		yun_api:"http://yuntuapi.amap.com/datasearch/around?key=097fe529b73c4d210f5bec8a653c3752&tableid=5476c83be4b068ad0ea3ad74&keywords={xm}&center={lnglat}&radius={radius}&sortrule={sortrule}&page={page}&limit=20",
+		opt:{
+			_xm:'',
+			_lnglat:'114.328709,30.579849',
+			xm:'',
+			lnglat:'114.328709,30.579849',
+			page:1,
+			radius:3000,
+			sortrule:'_distance'
+//			get xm(){return this._xm;},
+//			set xm(xm){
+//				this._xm = xm;
+//				Search.search(Search.api_replace(Search.opt));
+//			},
+//			get lnglat(){return this._lnglat;},
+//			set lnglat(lnglat){
+//				this._lnglat = lnglat;
+//				Search.search(Search.api_replace(Search.opt));
+//			}
+		},
+		api_replace:function (data){
+			return Search.yun_api.replace(/{(.+?)}/g,function(s,r){
+				return Search.opt[r];
+			});
+		},
+		search:function(url){
+			if(doxhr){
+		        lodingData();
+				return;
+			}
+			doxhr=true;
+			mui.getJSON(url, dispatchData, getDataFail);
+		}
+	};
+	function dispatchData(data){
+		doxhr = false;
+		if(mapView)
+		mui.fire(mapView,'catchData',data);
+		if(listView)
+		mui.fire(listView,'catchData',data);
+	}
+	
+	window.addEventListener('listen',function(e){
+		if(e.detail.xm)
+			Search.opt.xm = '_service:'+e.detail.xm;
+		if(e.detail.lnglat)
+			Search.opt.lnglat = e.detail.lnglat;
+		if(e.detail.page)
+			Search.opt.page = e.detail.page;
+		if(e.detail.radius)
+			Search.opt.radius = e.detail.radius;
+		Search.search(Search.api_replace(Search.opt));
+	});
+	
+	function lodingData(){
+		mui.toast('正在获取数据...');
+	}
+	function getDataFail(){
+		doxhr = false;
+		mui.toast('数据获取失败');
+	}
+
+	mui.plusReady(function(){
+		selfView = plus.webview.currentWebview();
+		Search.opt.xm = selfView.xm;
+		showMapView();
+		showListView();
+
+		function showMapView(){
+			if(!mapView){
+				mapView = plus.webview.create('shop-list-map.html','shop-list-map.html',subpage_style);
+				mapView.addEventListener('loading',showLoading.call(window,'加载地图'));
+				mapView.addEventListener('loaded',function(){
+					closeLoading();
+					selfView.append(mapView);
+					mui.fire(mapView,'mapinit');
+					if(listView){
+						plus.webview.hide(listView);
+					}
+				});
+			}else{
+				plus.webview.show(mapView);
+				if(listView){
+					plus.webview.hide(listView);
+				}
+			}
+		}
+		function showListView(){
+			if(!listView){
+				listView = plus.webview.create('shop-list-list.html','shop-list-list.html',subpage_style);
+//				listView.addEventListener('loading',showLoading);
+				listView.addEventListener('loaded',function(){
+//					closeLoading();
+					selfView.append(listView);
+//					if(mapView){
+//						plus.webview.hide(mapView);
+//					}
+				});
+				listView.hide();
+			}else{
+				plus.webview.show(listView);
+				if(mapView){
+					plus.webview.hide(mapView);
+				}
+			}
+		}
+
+		window.addEventListener('showMap',showMapView);
+		window.addEventListener('showList',showListView);
+		window.addEventListener('changeXm',changeXm);
+		
+		function changeXm(e){
+			Search.opt.xm = e.detail.xm;
+			Search.search(Search.api_replace(Search.opt));
+		}
+
+//加载中效果
+		function showLoading(text){
+			loadingWindow = plus.nativeUI.showWaiting(text || '');
+		}
+		function closeLoading(){
+			loadingWindow.close();
+		}
+
+	});
+</script>
+
+</body>
+</html>

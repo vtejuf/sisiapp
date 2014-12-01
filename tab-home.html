@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+    <script type="text/javascript" charset="utf-8">
+      	mui.init({swipeBack : false});
+    </script>
+    <style>#fuwuxiangmu{margin-top: 0;}</style>
+</head>
+<body>
+<header class="mui-bar mui-bar-nav">
+	<h1 class="mui-title">西西精选</h1>
+</header>
+<div class="mui-content">
+    <ul class="mui-table-view mui-grid-view mui-grid-9" id="fuwuxiangmu">
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">
+        	<a data-xm='洗车' href="shop-list.html">
+                <span class="mui-icon mui-icon-home"></span>
+                <div class="mui-media-body">洗车</div>
+        	</a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">
+        	<a data-xm='保养' href="shop-list.html">
+                <span class="mui-icon mui-icon-email"></span>
+                <div class="mui-media-body">保养</div>
+        	</a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">
+        	<a data-xm='补漆' href="shop-list.html">
+                <span class="mui-icon mui-icon-chatbubble"></span>
+                <div class="mui-media-body">补漆</div>
+        	</a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">
+        	<a data-xm='贴膜' href="shop-list.html">
+                <span class="mui-icon mui-icon-location"></span>
+                <div class="mui-media-body">贴膜</div>
+        	</a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">
+        	<a data-xm='美容' href="shop-list.html">
+                <span class="mui-icon mui-icon-search"></span>
+                <div class="mui-media-body">美容</div>
+        	</a>
+        </li>
+        <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3">
+        	<a id='fuwuxiangmu_more' href="option-fuwuxiangmu.html">
+                <span class="mui-icon mui-icon-more"></span>
+                <div class="mui-media-body">更多</div>
+        	</a>
+        </li>
+    </ul>
+    <h5>金牌商家</h5>
+    <ul class="mui-table-view" id='jinpaishangjia'>
+        <li class="mui-table-view-cell mui-media">
+            <a href="shop-detail.html">
+                <img class="mui-media-object mui-pull-left" src="../images/shuijiao.jpg">
+                <div class="mui-media-body">
+                    幸福
+                    <p class='mui-ellipsis'>能和心爱的人一起睡觉，是件幸福的事情；可是，打呼噜怎么办？</p>
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media">
+            <a href="shop-detail.html">
+                <img class="mui-media-object mui-pull-left" src="../images/muwu.jpg">
+                <div class="mui-media-body">
+                    木屋
+                    <p class='mui-ellipsis'>想要这样一间小木屋，夏天挫冰吃瓜，冬天围炉取暖.</p>
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media">
+            <a href="shop-detail.html">
+                <img class="mui-media-object mui-pull-left" src="../images/cbd.jpg">
+                <div class="mui-media-body">
+                    CBD
+                    <p class='mui-ellipsis'>烤炉模式的城，到黄昏，如同打翻的调色盘一般.</p>
+                </div>
+            </a>
+        </li>
+        <li class="mui-table-view-cell mui-media">
+            <a href="shop-detail.html">
+                <img class="mui-media-object mui-pull-left" src="../images/yuantiao.jpg">
+                <div class="mui-media-body">
+                    远眺
+                    <p class='mui-ellipsis'>静静的看这个世界，最后终于疯了</p>
+                </div>
+            </a>
+        </li>
+    </ul>
+</div>
+<script>
+	(function($){
+		function openWindow(ele){
+			var id = ele.href;
+			var xm = ele.getAttribute('data-xm');
+			if (id) {
+				var target = plus.webview.getWebviewById(id);
+				if(target && id!='option-fuwuxiangmu.html'){
+					mui.fire(target,'changeXm',{xm:xm});
+				}
+				if (~id.indexOf('.html')) {
+					if (window.plus) {
+						$.openWindow({
+							id: id,
+							url: ele.href,
+							preload: true,
+							extras:{
+								xm:xm
+							}
+						});
+					} else {
+						document.location.href = ele.href;
+					}
+				} else {
+					if (typeof plus !== 'undefined') {
+						plus.runtime.openURL(id);
+					}
+				}
+			}
+		}
+		$.ready(function() {
+			$('#jinpaishangjia').on('tap', 'a', function(e) {
+				openWindow(this);
+			});
+			
+			$('#fuwuxiangmu').on('tap','a',function(){
+				openWindow(this);
+			});
+			
+//			$('#fuwuxiangmu').on('tap','#fuwuxiangmu_more',function(){
+//				openWindow(this);
+//			});
+		});
+
+		$.plusReady(function() {
+			//退出
+			plus.key.addEventListener('backbutton', function(){
+				if(confirm('确认退出？')){
+					plus.runtime.quit();
+				}
+			}, false);
+			
+//			$('#fuwuxiangmu').on('tap','a:not(#fuwuxiangmu_more)',function(){
+//				openWindow(this);
+//			});
+		});
+	})(mui);
+</script>
+</body>
+</html>

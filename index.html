@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+</head>
+<body>
+<nav class="mui-bar mui-bar-tab">
+	<a id="tab_home" class="mui-tab-item mui-active" href="tab-home.html">
+		<span class="mui-icon mui-icon-home"></span>
+		<span class="mui-tab-label">首页</span>
+	</a>
+	<a id="tab_lishi" class="mui-tab-item" href="tab-lishi.html">
+		<span class="mui-icon mui-icon-compose"></span>
+		<span class="mui-tab-label">我的预约</span>
+	</a>
+	<a id="tab_dizhi" class="mui-tab-item" href="tab-dizhi.html">
+		<span class="mui-icon mui-icon-location"></span>
+		<span class="mui-tab-label">地址管理</span>
+	</a>
+	<a id="tab_geren" class="mui-tab-item" href="tab-geren.html">
+		<span class="mui-icon mui-icon-contact"></span>
+		<span class="mui-tab-label">个人信息</span>
+	</a>
+</nav>
+<script>
+	mui.init();
+	var subpages = ['tab-home.html','tab-lishi.html','tab-dizhi.html','tab-geren.html'];
+	var subpage_style = {
+		top: '0',
+		bottom: '50px'
+	};
+	//创建子页面，首个选项卡页面显示，其它均隐藏；
+	var self;
+	mui.plusReady(function(){
+		self = plus.webview.currentWebview();
+		self.append(plus.webview.create(subpages[0],subpages[0],subpage_style));
+
+		//首页返回键处理
+		plus.key.addEventListener('backbutton', function(){
+			if(confirm('确认退出？')){
+				plus.runtime.quit();
+			}
+		}, false);
+	});
+	
+	//当前激活选项，默认为第一个；
+	var activeTab = subpages[0];
+	//选项卡点击事件
+	mui('.mui-bar-tab').on('tap', 'a', function(e) {
+		var loadingWindow;
+		var targetTab = this.getAttribute('href');
+		if (targetTab == activeTab) {
+			return;
+		}
+		var tab_view = plus.webview.getWebviewById(targetTab);
+		if(!tab_view){
+			var sub = plus.webview.create(targetTab,targetTab,subpage_style);
+			sub.addEventListener('loading',showLoading);
+			sub.addEventListener('loaded', function(){
+				closeLoading();
+				self.append(sub);
+				plus.webview.hide(activeTab);
+				activeTab = targetTab;
+			});
+		}else{
+			plus.webview.hide(activeTab);
+			plus.webview.show(targetTab);
+			activeTab = targetTab;
+		}
+		
+		function showLoading(){
+			loadingWindow = plus.nativeUI.showWaiting();
+		}
+		function closeLoading(){
+			loadingWindow.close();
+		}		
+	});
+</script>
+</body>
+</html>
